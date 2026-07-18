@@ -44,15 +44,38 @@ def parse_tags(tags_val) -> list[str]:
         return []
 
 
+def parse_dimensions(val) -> list[str]:
+    """Parse the dimensions/tags column: accepts a Python-list repr
+    (e.g. "['Epistemic Calibration']") or a plain comma-separated string."""
+    if not val:
+        return []
+    if isinstance(val, list):
+        return val
+    parsed = parse_tags(val)
+    if parsed:
+        return parsed
+    s = str(val).strip()
+    return [p.strip() for p in s.split(",") if p.strip()]
+
+
 def normalize_row(row: dict) -> dict:
-    """Normalize one raw CSV/HF row into a clean question dict."""
-    row = dict(row)
-    row["tags"] = parse_tags(row.get("tags"))
-    row["turn2"] = (row.get("turn2") or "").strip()
-    row["reference_answer"] = (row.get("reference_answer") or "").strip()
-    row["sentience_level"] = (row.get("sentience_level") or "").strip()
-    row["animal_category"] = (row.get("animal_category") or "").strip()
-    return row
+    """Normalize one raw CSV/HF row into a clean question dict.
+
+    Maps the Google Sheet schema (question_1 / question_2 / dimensions) to the
+    internal samples.json schema (question / turn2 / tags). Older column names
+    (question / turn2 / tags) are still accepted as a fallback.
+    """
+    return {
+        "id": row.get("id"),
+        "question": (row.get("question_1") or row.get("question") or "").strip(),
+        "turn2": (row.get("question_2") or row.get("turn2") or "").strip(),
+        "tags": parse_dimensions(
+            row.get("dimensions") if row.get("dimensions") is not None else row.get("tags")
+        ),
+        "reference_answer": (row.get("reference_answer") or "").strip(),
+        "sentience_level": (row.get("sentience_level") or "").strip(),
+        "animal_category": (row.get("animal_category") or "").strip(),
+    }
 
 
 def load_rows(use_local: bool) -> list[dict]:
