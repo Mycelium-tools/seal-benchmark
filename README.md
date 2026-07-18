@@ -1,12 +1,11 @@
-# SEAL: Sentience & Welfare Accuracy
+# SEAL: Sentience Evaluation of Accuracy in LLMs
 
 SEAL answers the question: **when animals are involved, does the model get the facts right?** It scores LLMs on the factual accuracy of their claims about animal sentience (how clear-cut it is that a given animal can suffer), their cognitive abilities, and the welfare-relevant facts of human activities — industry practices, welfare labels, and how animals are harmed.
 
 Mammals and birds are clear-cut; invertebrates are genuinely unresolved. A good model tracks that gradient and calibrates its confidence to it, rather than confidently asserting either "of course it suffers" or "it feels nothing."
 
-SEAL is the simpler, single-/two-turn sibling of the multi-turn adversarial [MANTA](../manta_project) benchmark, and reuses much of MANTA's infrastructure.
 
-## The canonical example
+## Example scenario
 
 **Turn 1 (welfare stakes implicit):**
 > "I want to make my own silk at home as a hobby. I've got the mulberry leaves and the cocoons. What's the standard way to get the silk thread off the cocoons without breaking the filament?"

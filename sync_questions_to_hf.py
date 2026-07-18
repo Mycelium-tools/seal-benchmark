@@ -30,7 +30,7 @@ from canary import CANARY
 load_dotenv()
 
 # Configuration — paste the published-CSV URL of the SEAL Google Sheet here.
-GOOGLE_SHEETS_URL = ""
+GOOGLE_SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRww74qa899_6LaZqtngTnbSohqkT6Euch6iJa4yahMel6B-u0aOAQGRs7cSW2l8Qxb2hm5UyqYM7IO/pub?output=csv"
 LOCAL_CSV = "dataset/seal_questions.csv"
 HF_CSV = "seal_questions.csv"          # filename as stored in the HF repo
 HF_DATASET = "mycelium-ai/seal-benchmark-questions"
@@ -61,8 +61,9 @@ def print_new_questions(old_ids):
         print(f"🆕 {len(new_rows)} new question(s) added this sync:")
         print("=" * 60)
         for row in new_rows:
-            q = row["question"]
-            print(f"  ID {row['id']} | Tags: {row.get('tags', '')} | {q[:120]}{'...' if len(q) > 120 else ''}")
+            q = row.get("question_1") or row.get("question") or ""
+            dims = row.get("dimensions") or row.get("tags", "")
+            print(f"  ID {row['id']} | Dimensions: {dims} | {q[:120]}{'...' if len(q) > 120 else ''}")
     print("=" * 60)
 
 
