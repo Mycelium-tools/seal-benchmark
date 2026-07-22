@@ -5,9 +5,9 @@
 - `CLAUDE.md` — project overview, schema, dimensions, workflows, conventions
 - `README.md` — what SEAL is + the canonical silkworm example
 - `pyproject.toml` — deps and package layout
-- `src/seal/seal_eval.py` — tasks, dataset loading, log routing, MODELS
-- `src/seal/seal_solver.py` — 1–2 turn static conversation
-- `src/seal/seal_scorer.py` — dimensions, judge, reference-anchored scoring
+- `src/seal/eval.py` — tasks, dataset loading, log routing, MODELS
+- `src/seal/solver.py` — 1–2 turn static conversation
+- `src/seal/scorer.py` — dimensions, judge, reference-anchored scoring
 - `dataset/seal_questions.csv` — current question set
 
 ## Structure

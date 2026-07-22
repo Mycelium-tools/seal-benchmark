@@ -2,11 +2,11 @@
 SEAL Inspect AI Evaluation
 =============================
 Factual-accuracy evaluation of animal sentience & welfare reasoning.
-Each question runs as a 1- or 2-turn static conversation (see seal_solver.py):
+Each question runs as a 1- or 2-turn static conversation (see solver.py):
   Turn 1: a task where the welfare/sentience stakes are implicit; model answers.
   Turn 2 (optional): a static follow-up that raises the stakes explicitly.
 
-Scoring (seal_scorer.py): a single judge scores each tagged dimension
+Scoring (scorer.py): a single judge scores each tagged dimension
 (Sentience Factual Accuracy, Epistemic Calibration, Welfare Practice Accuracy)
 against the reference answer; overall = mean of applicable dimensions.
 
@@ -15,9 +15,9 @@ Tasks:
 - seal_full  — all questions (primary eval)
 
 Usage:
-    inspect eval src/seal/seal_eval.py@seal_test5 --model anthropic/claude-sonnet-5
-    inspect eval src/seal/seal_eval.py@seal_full   --model anthropic/claude-sonnet-5
-    python src/seal/seal_eval.py                    # run all MODELS across NUM_EPOCHS
+    inspect eval src/seal/eval.py@seal_test5 --model anthropic/claude-sonnet-5
+    inspect eval src/seal/eval.py@seal_full   --model anthropic/claude-sonnet-5
+    python src/seal/eval.py                    # run all MODELS across NUM_EPOCHS
 """
 
 import sys
@@ -37,8 +37,8 @@ from inspect_ai import Task, eval, task
 from inspect_ai.dataset import Sample, MemoryDataset
 from dotenv import load_dotenv
 
-from seal.seal_solver import static_two_turn_conversation
-from seal.seal_scorer import seal_scorer
+from seal.solver import static_two_turn_conversation
+from seal.scorer import seal_scorer
 
 load_dotenv()
 
@@ -258,7 +258,7 @@ def validate_environment(models: list[str]) -> None:
         raise RuntimeError(
             "Missing required API credentials: "
             + ", ".join(missing)
-            + ". Add them to .env or export them before running seal_eval.py."
+            + ". Add them to .env or export them before running eval.py."
         )
 
 

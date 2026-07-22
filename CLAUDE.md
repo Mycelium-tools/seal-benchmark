@@ -13,9 +13,9 @@ SEAL is deliberately simpler than its sibling benchmark MANTA (which is 5-turn a
 
 | File/Directory | Purpose |
 |---|---|
-| `src/seal/seal_eval.py` | Main eval script; tasks `seal_test5`, `seal_full`; `MODELS` and `NUM_EPOCHS` control the `__main__` run |
-| `src/seal/seal_solver.py` | `static_two_turn_conversation` — plays Turn 1, then the static Turn 2 if present |
-| `src/seal/seal_scorer.py` | Single-judge, reference-anchored scoring across 3 dimensions |
+| `src/seal/eval.py` | Main eval script; tasks `seal_test5`, `seal_full`; `MODELS` and `NUM_EPOCHS` control the `__main__` run |
+| `src/seal/solver.py` | `static_two_turn_conversation` — plays Turn 1, then the static Turn 2 if present |
+| `src/seal/scorer.py` | Single-judge, reference-anchored scoring across 3 dimensions |
 | `run_single_eval.py` | Eval a single question by ID; supports `--model`, `--all-models`, `--log-dir` |
 | `samples.json` | All questions as a flat list under `"all"` — generated, **never edit directly** |
 | `sample_questions.py` | Builds `samples.json` from HuggingFace (or `--local` from the CSV) |
@@ -30,21 +30,21 @@ SEAL is deliberately simpler than its sibling benchmark MANTA (which is 5-turn a
 ## Technical details
 
 ### Models
-- **Evaluated models:** see `MODELS` in `src/seal/seal_eval.py`.
-- **Judge:** single model, chosen to avoid self-judging (`select_judge` in `seal_scorer.py`): Claude/Anthropic targets are judged by GPT (`openai/gpt-5.5`); everything else by Claude (`anthropic/claude-opus-4-7`).
+- **Evaluated models:** see `MODELS` in `src/seal/eval.py`.
+- **Judge:** single model, chosen to avoid self-judging (`select_judge` in `scorer.py`): Claude/Anthropic targets are judged by GPT (`openai/gpt-4o`); everything else by Claude (`anthropic/claude-opus-4-8`).
 
 API keys required in `.env`:
 - `ANTHROPIC_API_KEY`
 - `OPENAI_API_KEY`
 - `HF_TOKEN` (only for dataset sync)
 
-### Conversation structure (`seal_solver.py`)
+### Conversation structure (`solver.py`)
 - **Turn 1:** the scenario from `samples.json` (welfare stakes implicit). Model answers.
 - **Turn 2 (optional):** a static follow-up (`turn2` column) that makes the welfare/sentience question explicit. Only played if `turn2` is non-empty; otherwise the sample is single-turn.
 
 Turn 2 is verbatim from the dataset — there is no follow-up-generating model, no pressure. This keeps runs fully reproducible.
 
-### Scoring dimensions (`seal_scorer.py`)
+### Scoring dimensions (`scorer.py`)
 Each question is tagged with a subset of dimensions in the Google Sheet; if untagged, all three are scored. The judge scores each applicable dimension on the full conversation against the `reference_answer`. Overall score = mean of applicable dimension scores.
 
 | Dimension | What it measures |
@@ -87,7 +87,7 @@ echo 'export SEAL_USER=YOUR_NAME' >> ~/.zshrc && source ~/.zshrc
 3. Create `.env` (gitignored) with `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `HF_TOKEN`.
 4. `echo 'export SEAL_USER=YOUR_NAME' >> ~/.zshrc && source ~/.zshrc`
 5. Build the dataset: `python sample_questions.py --local` (or `python sync_questions_to_hf.py` once the Sheet URL is set).
-6. Smoke test: `inspect eval src/seal/seal_eval.py@seal_test5 --model anthropic/claude-sonnet-5`
+6. Smoke test: `inspect eval src/seal/eval.py@seal_test5 --model anthropic/claude-sonnet-5`
 
 ## Workflows
 
@@ -104,16 +104,16 @@ python sample_questions.py --local
 ### Running evals
 ```bash
 # Smoke test — first 5 questions
-inspect eval src/seal/seal_eval.py@seal_test5 --model anthropic/claude-sonnet-5
+inspect eval src/seal/eval.py@seal_test5 --model anthropic/claude-sonnet-5
 
 # Full eval
-inspect eval src/seal/seal_eval.py@seal_full --model anthropic/claude-sonnet-5
+inspect eval src/seal/eval.py@seal_full --model anthropic/claude-sonnet-5
 
 # All MODELS across NUM_EPOCHS
-python src/seal/seal_eval.py --full-run baseline
+python src/seal/eval.py --full-run baseline
 
 # Slice of questions
-inspect eval src/seal/seal_eval.py@seal_full --model anthropic/claude-sonnet-5 --sample-range 0 50
+inspect eval src/seal/eval.py@seal_full --model anthropic/claude-sonnet-5 --sample-range 0 50
 
 # Single question by id
 python run_single_eval.py 1
@@ -127,7 +127,7 @@ python analysis/extract_eval_csvs.py --run-dir logs/YOURNAME_MonthYYYY/run_...
 ```
 
 ### Adding a scoring dimension
-1. Add to `SEAL_DIMENSIONS` in `seal_scorer.py` (name + description).
+1. Add to `SEAL_DIMENSIONS` in `scorer.py` (name + description).
 2. Add matching `DIMENSION_CONSIDERATIONS` and `DIMENSION_FEW_SHOTS` entries.
 3. Add a `@metric` (mirror `mean_sentience_accuracy`) and register it on `@scorer`.
 4. Tag questions with the exact dimension name in the Google Sheet.
