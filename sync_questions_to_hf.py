@@ -30,7 +30,7 @@ from canary import CANARY
 load_dotenv()
 
 # Configuration — paste the published-CSV URL of the SEAL Google Sheet here.
-GOOGLE_SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRww74qa899_6LaZqtngTnbSohqkT6Euch6iJa4yahMel6B-u0aOAQGRs7cSW2l8Qxb2hm5UyqYM7IO/pub?gid=0&single=true&output=csv"
+GOOGLE_SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRww74qa899_6LaZqtngTnbSohqkT6Euch6iJa4yahMel6B-u0aOAQGRs7cSW2l8Qxb2hm5UyqYM7IO/pub?gid=1385641891&single=true&output=csv"
 LOCAL_CSV = "dataset/seal_questions.csv"
 HF_CSV = "seal_questions.csv"          # filename as stored in the HF repo
 HF_DATASET = "mycelium-ai/seal-benchmark-questions"
