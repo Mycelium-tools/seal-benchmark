@@ -72,7 +72,7 @@ def normalize_row(row: dict) -> dict:
         "tags": parse_dimensions(
             row.get("dimensions") if row.get("dimensions") is not None else row.get("tags")
         ),
-        "reference_answer": (row.get("reference_answer") or "").strip(),
+        "reference_answer": (row.get("ref_answer") or row.get("reference_answer") or "").strip(),
         "sentience_level": (row.get("sentience_level") or "").strip(),
         "animal_category": (row.get("animal_category") or "").strip(),
     }

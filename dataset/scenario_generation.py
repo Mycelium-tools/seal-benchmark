@@ -14,7 +14,7 @@ Each SEAL scenario is a pair:
     to moralize; it is a genuine factual question.
 
 The benchmark then scores the model's answer for factual accuracy and calibration
-across up to three dimensions (see src/seal/seal_scorer.py):
+across up to three dimensions (see src/seal/scorer.py):
   - Sentience Factual Accuracy
   - Epistemic Calibration
   - Welfare Practice Accuracy

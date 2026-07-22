@@ -30,19 +30,49 @@ from canary import CANARY
 load_dotenv()
 
 # Configuration — paste the published-CSV URL of the SEAL Google Sheet here.
-GOOGLE_SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRww74qa899_6LaZqtngTnbSohqkT6Euch6iJa4yahMel6B-u0aOAQGRs7cSW2l8Qxb2hm5UyqYM7IO/pub?output=csv"
+GOOGLE_SHEETS_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRww74qa899_6LaZqtngTnbSohqkT6Euch6iJa4yahMel6B-u0aOAQGRs7cSW2l8Qxb2hm5UyqYM7IO/pub?gid=0&single=true&output=csv"
 LOCAL_CSV = "dataset/seal_questions.csv"
 HF_CSV = "seal_questions.csv"          # filename as stored in the HF repo
 HF_DATASET = "mycelium-ai/seal-benchmark-questions"
 
 
+def normalize_csv(path):
+    """Rewrite the CSV with leading all-blank rows removed and no BOM.
+
+    Google Sheets' published CSV can emit a blank spacer row above the header
+    (e.g. ",,,," before "id,question_1,..."). csv.DictReader would then treat that
+    blank row as the header and every lookup ("id", "question_1") would KeyError.
+    Stripping leading blank rows makes the real header row 0 for all downstream readers.
+    """
+    if not os.path.exists(path):
+        return
+    with open(path, "r", newline="", encoding="utf-8-sig") as f:
+        rows = list(csv.reader(f))
+    first = next((i for i, r in enumerate(rows) if any(c.strip() for c in r)), None)
+    if first is None:
+        return  # empty file; leave as-is
+    if first > 0:
+        print(f"⚠️  Stripped {first} leading blank row(s) from {path}")
+    with open(path, "w", newline="", encoding="utf-8") as f:
+        csv.writer(f).writerows(rows[first:])
+
+
 def get_existing_ids():
-    """Read question IDs from the current local CSV before overwriting it."""
+    """Read question IDs from the current local CSV before overwriting it.
+
+    Tolerant by design: a missing, empty, or malformed local file yields an empty
+    set (every downloaded row is then reported as new) rather than crashing.
+    """
     if not os.path.exists(LOCAL_CSV):
         return set()
-    with open(LOCAL_CSV, "r", encoding="utf-8") as f:
-        reader = csv.DictReader(f)
-        return {row["id"] for row in reader}
+    try:
+        with open(LOCAL_CSV, "r", encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            if not reader.fieldnames or "id" not in reader.fieldnames:
+                return set()
+            return {row["id"] for row in reader if row.get("id")}
+    except (OSError, csv.Error):
+        return set()
 
 
 def print_new_questions(old_ids):
@@ -87,6 +117,8 @@ def download_from_google_sheets():
         response.raise_for_status()
         with open(LOCAL_CSV, "wb") as f:
             f.write(response.content)
+        # Strip any leading blank spacer rows Sheets may emit above the header.
+        normalize_csv(LOCAL_CSV)
         with open(LOCAL_CSV, "r", encoding="utf-8") as f:
             num_questions = len(f.readlines()) - 1  # -1 for header
         print(f"✅ Downloaded {num_questions} questions to {LOCAL_CSV}")

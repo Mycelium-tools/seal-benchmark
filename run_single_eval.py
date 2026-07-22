@@ -29,9 +29,9 @@ if _src_dir not in sys.path:
 from inspect_ai import eval, Task
 from inspect_ai.dataset import Sample, MemoryDataset
 
-from seal.seal_solver import static_two_turn_conversation
-from seal.seal_scorer import seal_scorer
-from seal.seal_eval import MODELS, parse_tags
+from seal.solver import static_two_turn_conversation
+from seal.scorer import seal_scorer
+from seal.eval import MODELS, parse_tags
 
 
 def get_log_dir(args=None):
