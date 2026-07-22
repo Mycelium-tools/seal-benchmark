@@ -6,9 +6,6 @@ SEAL tests whether LLMs make **factually accurate, well-calibrated claims about 
 
 SEAL is deliberately simpler than its sibling benchmark MANTA (which is 5-turn adversarial). SEAL is 1–2 turns, static (no dynamically generated follow-ups, no pressure), and reference-anchored (the judge scores against a gold-standard answer per question). Much of the infrastructure is ported from MANTA.
 
-## People
-- **Allen Lu** — lead researcher
-
 ## Document index
 
 | File/Directory | Purpose |
@@ -22,10 +19,16 @@ SEAL is deliberately simpler than its sibling benchmark MANTA (which is 5-turn a
 | `sync_questions_to_hf.py` | Full sync pipeline: Google Sheets → CSV → HuggingFace → `samples.json` |
 | `dataset/seal_questions.csv` | Canonical local copy of the question dataset |
 | `dataset/hf_login.py` | Standalone HuggingFace login helper |
+| `dataset/scenario_generation.py` | LLM scenario-generation pipeline (bootstrap → QC → accumulate); modes `--bulk`, `--score-bulk`, `--to-csv` |
+| `dataset/scenario_quality_rules.md` | Source-of-truth rules for what makes a good SEAL scenario |
+| `dataset/scenario_taxonomy.md` | Coverage checklist (sentience gradient, domains, axes) + variance reference for generation |
+| `dataset/smoke_test.py` | Quick 20-scenario generation smoke test |
 | `analysis/extract_eval_csvs.py` | Extract per-sample scores + metadata from `.eval` logs into CSVs |
+| `qualitative_analyses/` | Notebook template for manual transcript / judge review |
 | `canary.py` | BIG-bench-style contamination canary (unique GUID; never reuse or change) |
 | `logs/` | Generated `.eval` files from evaluation runs |
 | `.claude/commands/` | Custom Claude slash commands |
+| `git-workflow-guide.md` | Branch → commit → PR → cleanup git workflow |
 
 ## Technical details
 
