@@ -65,17 +65,16 @@ def extract_sample_row(sample, log) -> dict:
         "overall_score": scorer.value if scorer else None,
         "score_explanation": scorer.explanation if scorer else None,
 
-        # per-dimension scores
-        "sentience_factual_accuracy": dims.get("Sentience Factual Accuracy"),
+        # per-axis scores
+        "factual_accuracy": dims.get("Factual Accuracy"),
         "epistemic_calibration": dims.get("Epistemic Calibration"),
-        "welfare_practice_accuracy": dims.get("Welfare Practice Accuracy"),
 
-        # per-dimension explanations
-        "sentience_factual_accuracy_expl": _dim_expl("Sentience Factual Accuracy"),
+        # per-axis explanations
+        "factual_accuracy_expl": _dim_expl("Factual Accuracy"),
         "epistemic_calibration_expl": _dim_expl("Epistemic Calibration"),
-        "welfare_practice_accuracy_expl": _dim_expl("Welfare Practice Accuracy"),
 
         # scorer metadata
+        "domain": sm.get("domain"),   # per-sample tag for offline slicing (not a headline metric)
         "judge_model": sm.get("judge_model"),
         "num_turns": sm.get("num_turns"),
 
@@ -83,6 +82,7 @@ def extract_sample_row(sample, log) -> dict:
         "tags": _j(meta.get("tags")),
         "turn2": meta.get("turn2"),
         "reference_answer": meta.get("reference_answer"),
+        "domain_meta": meta.get("domain"),
         "sentience_level": meta.get("sentience_level"),
         "animal_category": meta.get("animal_category"),
         "language": meta.get("language"),

@@ -107,6 +107,7 @@ def main():
             "tags": tags,
             "turn2": turn2,
             "reference_answer": question.get("reference_answer", ""),
+            "domain": question.get("domain", ""),
             "sentience_level": question.get("sentience_level", ""),
             "animal_category": question.get("animal_category", ""),
             "language": question.get("language", "en"),

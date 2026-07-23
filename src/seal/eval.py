@@ -197,6 +197,7 @@ def load_samples(
                 "tags": tags,
                 "turn2": q.get("turn2", ""),
                 "reference_answer": q.get("reference_answer", ""),
+                "domain": q.get("domain", ""),
                 "sentience_level": q.get("sentience_level", ""),
                 "animal_category": q.get("animal_category", ""),
                 "language": q.get("language", "en"),
@@ -231,8 +232,8 @@ def seal_full():
 
 
 MODELS = [
-    "anthropic/claude-opus-4-8",
-    "openai/gpt-4o",
+    # "anthropic/claude-opus-4-8",
+    "openai/gpt-5.6-terra",
 ]
 
 

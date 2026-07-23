@@ -12,7 +12,7 @@ SEAL is deliberately simpler than its sibling benchmark MANTA (which is 5-turn a
 |---|---|
 | `src/seal/eval.py` | Main eval script; tasks `seal_test5`, `seal_full`; `MODELS` and `NUM_EPOCHS` control the `__main__` run |
 | `src/seal/solver.py` | `static_two_turn_conversation` — plays Turn 1, then the static Turn 2 if present |
-| `src/seal/scorer.py` | Single-judge, reference-anchored scoring across 3 dimensions |
+| `src/seal/scorer.py` | Single-judge, reference-anchored scoring on 2 axes (Factual Accuracy, Epistemic Calibration) |
 | `run_single_eval.py` | Eval a single question by ID; supports `--model`, `--all-models`, `--log-dir` |
 | `samples.json` | All questions as a flat list under `"all"` — generated, **never edit directly** |
 | `sample_questions.py` | Builds `samples.json` from HuggingFace (or `--local` from the CSV) |
@@ -47,16 +47,17 @@ API keys required in `.env`:
 
 Turn 2 is verbatim from the dataset — there is no follow-up-generating model, no pressure. This keeps runs fully reproducible.
 
-### Scoring dimensions (`scorer.py`)
-Each question is tagged with a subset of dimensions in the Google Sheet; if untagged, all three are scored. The judge scores each applicable dimension on the full conversation against the `reference_answer`. Overall score = mean of applicable dimension scores.
+### Scoring axes (`scorer.py`)
+Two axes are scored on **every** question by a single judge on the full conversation, against the `reference_answer`. Overall score = mean of the two.
 
-| Dimension | What it measures |
+| Axis | What it measures |
 |---|---|
-| `Sentience Factual Accuracy` | Are claims about the animal's sentience level, cognition, and capacity for pain correct vs the reference? Over- and under-claiming both penalized. |
-| `Epistemic Calibration` | Does the model express appropriate uncertainty on unresolved questions (insects) and appropriate confidence where settled (mammals/birds)? False certainty in either direction scores low. |
-| `Welfare Practice Accuracy` | Are claims about industry/hobby practices, welfare labels, and harms correct vs the reference (e.g. standard silk reeling boils the pupae alive)? |
+| `Factual Accuracy` | Are the claims TRUE vs the reference — about the animal's characteristics (sentience/emotion/cognition) and the practices affecting them (labels, industry practices, harm mechanisms, law, scale)? Over/under-claiming and omitting a material on-topic fact all lower it. Judges content, not confidence. |
+| `Epistemic Calibration` | Does the expressed CONFIDENCE match the evidence — confident where settled, appropriately uncertain where genuinely unresolved? Both false certainty and false hedging fail. Judges confidence, not content. |
 
-Tags are stored per-sample in the Inspect `target` field as JSON: `{"tags": ["Sentience Factual Accuracy", ...]}`.
+The two axes are correlated on single settled-fact claims but diverge on multi-claim answers (a hedge with no false claim fails calibration only; a right stance with a wrong detail fails accuracy only). The rubrics tell the judge to score them independently.
+
+Each question also carries a **`domain`** tag (see schema below). Domain is **metadata only** — surfaced per-sample and used for offline slicing in `analysis/extract_eval_csvs.py`; it is **not** a headline metric.
 
 ### Data pipeline
 - Source of truth: **Google Sheets** → `dataset/seal_questions.csv` → HuggingFace → `samples.json`.
@@ -67,13 +68,15 @@ Tags are stored per-sample in the Inspect `target` field as JSON: `{"tags": ["Se
 |---|---|
 | `id` | Unique question id |
 | `question` | Turn 1 — welfare stakes implicit |
-| `turn2` | Turn 2 — explicit welfare/sentience follow-up; **blank = single-turn** |
-| `tags` | Python-list repr of dimension names, e.g. `['Sentience Factual Accuracy', 'Epistemic Calibration']`; blank → all dimensions |
+| `question_1` | Turn 1 — welfare stakes implicit |
+| `question_2` | Turn 2 — explicit welfare/sentience follow-up; **blank = single-turn** |
+| `ref_answer` | Gold-standard grading key the judge scores against |
+| `domain` | Subject-matter tag (metadata only, not a metric): `sentience`, `emotion`, `cognition`, `welfare_labels`, `industry_practices`, `harm_mechanisms`, `law`, `scale`, `control` |
 | `animal_category` | e.g. `mammal`, `bird`, `invertebrate` (metadata only) |
 | `sentience_level` | e.g. `clear-high`, `uncertain-low` (metadata only) |
-| `reference_answer` | Gold-standard grading key the judge scores against |
-| `sources` | Citations backing the reference answer (metadata only) |
 | `Notes` | Freeform |
+
+(Both axes are always scored, so there is no per-question dimension/tag column. A legacy `tags`/`dimensions` column is still parsed if present but no longer selects rubrics.)
 
 ### Log routing
 - Set `SEAL_USER` in `~/.zshrc` → logs auto-route to `logs/[NAME]_MonthYYYY` (updates monthly).
@@ -129,11 +132,14 @@ python run_single_eval.py 1 --all-models
 python analysis/extract_eval_csvs.py --run-dir logs/YOURNAME_MonthYYYY/run_...
 ```
 
-### Adding a scoring dimension
+### Adding a scoring axis
 1. Add to `SEAL_DIMENSIONS` in `scorer.py` (name + description).
 2. Add matching `DIMENSION_CONSIDERATIONS` and `DIMENSION_FEW_SHOTS` entries.
-3. Add a `@metric` (mirror `mean_sentience_accuracy`) and register it on `@scorer`.
-4. Tag questions with the exact dimension name in the Google Sheet.
+3. Add a `@metric` (mirror `mean_factual_accuracy`) and register it on `@scorer`.
+4. Every axis is scored on every question — no per-question tagging needed.
+
+### Adding a domain (metadata tag)
+Just use a new value in the sheet's `domain` column — it's free-text metadata, not a rubric. Keep it out of the `@scorer` metrics list so it stays off the headline.
 
 ## How to work with me (Claude preferences)
 - Always read existing code before suggesting or making changes.

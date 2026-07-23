@@ -61,9 +61,10 @@ def parse_dimensions(val) -> list[str]:
 def normalize_row(row: dict) -> dict:
     """Normalize one raw CSV/HF row into a clean question dict.
 
-    Maps the Google Sheet schema (question_1 / question_2 / dimensions) to the
-    internal samples.json schema (question / turn2 / tags). Older column names
-    (question / turn2 / tags) are still accepted as a fallback.
+    Maps the Google Sheet schema (question_1 / question_2 / domain / ref_answer) to the
+    internal samples.json schema (question / turn2 / domain / reference_answer). Older
+    column names (question / turn2 / tags / reference_answer) are still accepted as a
+    fallback. `tags` is parsed but no longer selects scorer rubrics (both axes always run).
     """
     return {
         "id": row.get("id"),
@@ -73,6 +74,7 @@ def normalize_row(row: dict) -> dict:
             row.get("dimensions") if row.get("dimensions") is not None else row.get("tags")
         ),
         "reference_answer": (row.get("ref_answer") or row.get("reference_answer") or "").strip(),
+        "domain": (row.get("domain") or "").strip(),
         "sentience_level": (row.get("sentience_level") or "").strip(),
         "animal_category": (row.get("animal_category") or "").strip(),
     }
